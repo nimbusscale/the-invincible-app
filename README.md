@@ -5,7 +5,7 @@ At the heart of the app is Node.js code deployed in Kubernetes clusters across t
 
 # Architecture Diagram
 
-
+![arhitecture.png](architecture.png)
 
 When a user connects to the Invincible App, the request lands on a global load balancer configured to prioritize routing to New York. If New York is unavailable, the request is routed to Amsterdam.
 
