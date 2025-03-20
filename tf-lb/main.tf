@@ -115,3 +115,29 @@ resource "helm_release" "ams3_cert_manager" {
 }
 
 
+resource "kubernetes_namespace_v1" "ams3_invincible_app" {
+  provider = kubernetes.ams3
+  metadata {
+    name = "invincible-app"
+    labels = {
+      name = "invincible-app"
+    }
+  }
+}
+
+resource "helm_release" "ams3_cert_manager_issuer" {
+  depends_on = [
+    helm_release.ams3_cert_manager
+  ]
+  provider   = helm.ams3
+  name       = "cert-manager-letsencrypt-issuer"
+  namespace  = kubernetes_namespace_v1.ams3_invincible_app.metadata[0].name
+  chart      = "./cert-manager-letsencrypt-issuer"
+  set = [
+    {
+      name  = "acmeEmail"
+      value = "jkeegan@digitalocean.com"
+    }
+  ]
+}
+
