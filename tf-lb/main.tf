@@ -19,32 +19,30 @@ terraform {
   }
 }
 
-data "digitalocean_kubernetes_cluster" "ams3" {
+data "digitalocean_kubernetes_cluster" "invincible_app" {
+  # Param
   name = "invincible-app-ams3"
 }
 
 provider "kubernetes" {
-  alias = "ams3"
-  host  = data.digitalocean_kubernetes_cluster.ams3.endpoint
-  token = data.digitalocean_kubernetes_cluster.ams3.kube_config[0].token
+  host  = data.digitalocean_kubernetes_cluster.invincible_app.endpoint
+  token = data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].token
   cluster_ca_certificate = base64decode(
-    data.digitalocean_kubernetes_cluster.ams3.kube_config[0].cluster_ca_certificate
+    data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].cluster_ca_certificate
   )
 }
 
 provider "helm" {
-  alias = "ams3"
   kubernetes = {
-    host  = data.digitalocean_kubernetes_cluster.ams3.endpoint
-    token = data.digitalocean_kubernetes_cluster.ams3.kube_config[0].token
+    host  = data.digitalocean_kubernetes_cluster.invincible_app.endpoint
+    token = data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].token
     cluster_ca_certificate = base64decode(
-      data.digitalocean_kubernetes_cluster.ams3.kube_config[0].cluster_ca_certificate
+      data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].cluster_ca_certificate
     )
   }
 }
 
-resource "kubernetes_namespace_v1" "ams3_ingress_nginx" {
-  provider = kubernetes.ams3
+resource "kubernetes_namespace_v1" "ingress_nginx" {
   metadata {
     name = "ingress-nginx"
     labels = {
@@ -57,10 +55,9 @@ data "http" "ingress_nginx_values" {
   url = "https://raw.githubusercontent.com/digitalocean/marketplace-kubernetes/master/stacks/ingress-nginx/values.yml"
 }
 
-resource "helm_release" "ams3_ingress_nginx" {
-  provider   = helm.ams3
+resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx"
-  namespace  = kubernetes_namespace_v1.ams3_ingress_nginx.metadata[0].name
+  namespace  = kubernetes_namespace_v1.ingress_nginx.metadata[0].name
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   version    = "4.11.2"
@@ -87,8 +84,7 @@ resource "helm_release" "ams3_ingress_nginx" {
   ]
 }
 
-resource "kubernetes_namespace_v1" "ams3_cert_manager" {
-  provider = kubernetes.ams3
+resource "kubernetes_namespace_v1" "cert_manager" {
   metadata {
     name = "cert-manager"
     labels = {
@@ -102,10 +98,9 @@ data "http" "cert_manager_values" {
 }
 
 
-resource "helm_release" "ams3_cert_manager" {
-  provider   = helm.ams3
+resource "helm_release" "cert_manager" {
   name       = "cert-manager"
-  namespace  = kubernetes_namespace_v1.ams3_cert_manager.metadata[0].name
+  namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
   version    = "1.13.3"
@@ -115,8 +110,7 @@ resource "helm_release" "ams3_cert_manager" {
 }
 
 
-resource "kubernetes_namespace_v1" "ams3_invincible_app" {
-  provider = kubernetes.ams3
+resource "kubernetes_namespace_v1" "invincible_app" {
   metadata {
     name = "invincible-app"
     labels = {
@@ -125,13 +119,12 @@ resource "kubernetes_namespace_v1" "ams3_invincible_app" {
   }
 }
 
-resource "helm_release" "ams3_cert_manager_issuer" {
+resource "helm_release" "cert_manager_issuer" {
   depends_on = [
-    helm_release.ams3_cert_manager
+    helm_release.cert_manager
   ]
-  provider   = helm.ams3
   name       = "cert-manager-letsencrypt-issuer"
-  namespace  = kubernetes_namespace_v1.ams3_invincible_app.metadata[0].name
+  namespace  = kubernetes_namespace_v1.invincible_app.metadata[0].name
   chart      = "./cert-manager-letsencrypt-issuer"
   set = [
     {
@@ -139,5 +132,34 @@ resource "helm_release" "ams3_cert_manager_issuer" {
       value = "jkeegan@digitalocean.com"
     }
   ]
+}
+
+
+data "digitalocean_database_cluster" "invincible_app" {
+  # Param
+  name = "invincible-app-ams3"
+}
+
+data "digitalocean_database_ca" "invincible_app" {
+  cluster_id = data.digitalocean_database_cluster.invincible_app.id
+}
+
+
+resource "kubernetes_secret_v1" "invincible_app_db" {
+  metadata {
+    name = "invincible-app-db"
+    namespace = kubernetes_namespace_v1.invincible_app.metadata[0].name
+    labels = {
+      name = "invincible-app-db"
+    }
+  }
+  data = {
+    "USER": data.digitalocean_database_cluster.invincible_app.user
+    "PASSWORD": data.digitalocean_database_cluster.invincible_app.password
+    "HOST": data.digitalocean_database_cluster.invincible_app.private_host
+    "PORT": data.digitalocean_database_cluster.invincible_app.port
+    "DB_NAME": data.digitalocean_database_cluster.invincible_app.database
+    "CA_CERT": data.digitalocean_database_ca.invincible_app.certificate
+  }
 }
 
