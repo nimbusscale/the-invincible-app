@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "invincible-app.fullname" . }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+          - name: REGION_LOCAL
+            value: "Amsterdam"
+          - name: REGION_REMOTE
+            value: "New York"
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: PASSWORD
+          - name: DB_HOST_LOCAL
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: HOST
+          - name: DB_HOST_REMOTE
+            value: "private-db-ro-postgresql-nyc1-do-user-0.k.db.ondigitalocean.com"
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: PORT
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: DB_NAME
+          - name: DB_CA_CERT
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: CA_CERT
+          - name: PORT
+            value: "8080"
+          - name: SVC_IP_REMOTE
+            value: "10.116.16.29"
+

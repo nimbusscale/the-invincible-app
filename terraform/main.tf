@@ -83,6 +83,7 @@ resource "digitalocean_kubernetes_cluster" "ams3" {
   vpc_uuid = digitalocean_vpc.ams3.id
   ha = true
   destroy_all_associated_resources = true
+  registry_integration = true
   node_pool {
     name = "default"
     size = "s-1vcpu-2gb"
@@ -100,6 +101,7 @@ resource "digitalocean_kubernetes_cluster" "nyc1" {
   vpc_uuid = digitalocean_vpc.nyc1.id
   ha = true
   destroy_all_associated_resources = true
+  registry_integration = true
   node_pool {
     name = "default"
     size = "s-1vcpu-2gb"
