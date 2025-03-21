@@ -3,3 +3,4 @@
 .terraform.lock.hcl
 backend.tf
 node_modules/
+scratch/

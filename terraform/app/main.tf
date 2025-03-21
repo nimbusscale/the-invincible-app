@@ -66,19 +66,19 @@ resource "helm_release" "ingress_nginx" {
   ]
   set = [
     {
-      name  = "controller.service.annotations.\"service\\.beta\\.kubernetes\\.io/do-loadbalancer-name\""
+      name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-name"
       value = "invincible-app-ams3"
     },
     {
-      name  = "controller.service.annotations.\"service\\.beta\\.kubernetes\\.io/do-loadbalancer-enable-proxy-protocol\""
+      name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-enable-proxy-protocol"
       value = "true"
     },
     {
-      name  = "controller.service.annotations.\"service\\.beta\\.kubernetes\\.io/do-loadbalancer-tls-passthrough\""
+      name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-tls-passthrough"
       value = "true"
     },
     {
-      name  = "config.use-proxy-protocol"
+      name  = "controller.config.use-proxy-protocol"
       value = "true"
     }
   ]

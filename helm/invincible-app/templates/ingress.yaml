@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "invincible-app.fullname" . }}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "invincible.do.jjk3.com"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "invincible-app.fullname" . }}
+            port:
+              number: 8080

@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   name: {{ include "invincible-app.fullname" . }}
   labels:
-    app: {{ .Chart.Name }}
+    app: {{ include "invincible-app.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}
+      app: {{ include "invincible-app.fullname" . }}
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}
+        app: {{ include "invincible-app.fullname" . }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "invincible-app.fullname" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
