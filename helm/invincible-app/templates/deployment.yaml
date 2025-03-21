@@ -47,7 +47,7 @@ spec:
                 name: {{ .Values.dbSecretName }}
                 key: HOST
           - name: DB_HOST_REMOTE
-            value: "private-db-ro-postgresql-nyc1-do-user-0.k.db.ondigitalocean.com"
+            value: "private-invincible-app-nyc1-do-user-19922133-0.i.db.ondigitalocean.com"
           - name: DB_PORT
             valueFrom:
               secretKeyRef:
@@ -66,5 +66,5 @@ spec:
           - name: PORT
             value: "8080"
           - name: SVC_IP_REMOTE
-            value: "10.116.16.29"
+            value: "ams3.invincible.do.jjk3.com"
 

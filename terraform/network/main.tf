@@ -36,6 +36,19 @@ resource "digitalocean_domain" "invincible_domain" {
   name = "invincible.do.jjk3.com"
 }
 
+
+data "digitalocean_loadbalancer" "ams" {
+  name = "invincible-app-ams3"
+}
+
+resource "digitalocean_record" "ams" {
+  domain = digitalocean_domain.invincible_domain.id
+  type   = "A"
+  name   = "ams3"
+  value  = data.digitalocean_loadbalancer.ams.ip
+  ttl    = 300
+}
+
 data "digitalocean_domain" "parent_domain" {
   name = "do.jjk3.com"
 }
