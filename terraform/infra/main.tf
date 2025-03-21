@@ -77,37 +77,39 @@ resource "digitalocean_database_firewall" "nyc1" {
 }
 
 resource "digitalocean_kubernetes_cluster" "ams3" {
-  name    = "invincible-app-ams3"
-  region  = "ams3"
-  version = "1.32.2-do.0"
-  vpc_uuid = digitalocean_vpc.ams3.id
-  ha = true
+  name                             = "invincible-app-ams3"
+  region                           = "ams3"
+  version                          = "1.32.2-do.0"
+  vpc_uuid                         = digitalocean_vpc.ams3.id
+  ha                               = true
   destroy_all_associated_resources = true
-  registry_integration = true
+  registry_integration             = true
   node_pool {
-    name = "default"
-    size = "s-1vcpu-2gb"
+    name       = "default"
+    size       = "s-1vcpu-2gb"
     auto_scale = true
-    min_nodes = 2
-    max_nodes = 4
+    min_nodes  = 2
+    max_nodes  = 4
+    tags       = ["invincible-app"]
   }
 }
 
 
 resource "digitalocean_kubernetes_cluster" "nyc1" {
-  name    = "invincible-app-nyc1"
-  region  = "nyc1"
-  version = "1.32.2-do.0"
-  vpc_uuid = digitalocean_vpc.nyc1.id
-  ha = true
+  name                             = "invincible-app-nyc1"
+  region                           = "nyc1"
+  version                          = "1.32.2-do.0"
+  vpc_uuid                         = digitalocean_vpc.nyc1.id
+  ha                               = true
   destroy_all_associated_resources = true
-  registry_integration = true
+  registry_integration             = true
   node_pool {
-    name = "default"
-    size = "s-1vcpu-2gb"
+    name       = "default"
+    size       = "s-1vcpu-2gb"
     auto_scale = true
-    min_nodes = 2
-    max_nodes = 4
+    min_nodes  = 2
+    max_nodes  = 4
+    tags       = ["invincible-app"]
   }
 }
 
