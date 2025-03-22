@@ -1,12 +1,3 @@
-# terraform {
-#   required_providers {
-#     digitalocean = {
-#       source  = "digitalocean/digitalocean"
-#       version = "~> 2.0"
-#     }
-#   }
-# }
-
 module "infra" {
   source = "../../modules/infra"
   app_name = "invincible-app"

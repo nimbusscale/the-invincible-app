@@ -1,6 +1,5 @@
 variable "app_name" {
   description = "name used to generate labels and other ids"
-  default = "invincible-app"
 }
 
 variable "region" {

@@ -2,15 +2,19 @@ terraform {
   required_providers {
     digitalocean = {
       source  = "digitalocean/digitalocean"
+      version = "~> 2.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
     }
     helm = {
       source  = "hashicorp/helm"
+      version = "3.0.0-pre2"
     }
     http = {
       source  = "hashicorp/http"
+      version = "~> 3.0"
     }
   }
 }
@@ -122,7 +126,7 @@ resource "helm_release" "cert_manager_issuer" {
   ]
   name       = "cert-manager-letsencrypt-issuer"
   namespace  = kubernetes_namespace_v1.app.metadata[0].name
-  chart      = "./cert-manager-letsencrypt-issuer"
+  chart      = "${path.module}/cert-manager-letsencrypt-issuer"
   set = [
     {
       name  = "acmeEmail"

@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   acme:
-    email: {{ required "ERROR: acmeEmail is not set!" .Values.acmeEmail }}
+    email: {{ .Values.acmeEmail }}
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-nginx-private-key
