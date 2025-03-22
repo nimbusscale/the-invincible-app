@@ -4,40 +4,15 @@ terraform {
       source  = "digitalocean/digitalocean"
       version = "~> 2.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.0"
-    }
   }
 }
 
-data "digitalocean_kubernetes_cluster" "ams3" {
-  name = "invincible-app-ams3"
-}
-
-provider "kubernetes" {
-  alias = "ams3"
-  host  = data.digitalocean_kubernetes_cluster.ams3.endpoint
-  token = data.digitalocean_kubernetes_cluster.ams3.kube_config[0].token
-  cluster_ca_certificate = base64decode(
-    data.digitalocean_kubernetes_cluster.ams3.kube_config[0].cluster_ca_certificate
-  )
-}
-
-data "kubernetes_service_v1" "ams3_ingress_nginx_controller" {
-  provider = kubernetes.ams3
-  metadata {
-    name = "ingress-nginx-controller"
-    namespace = "ingress-nginx"
-  }
-}
 
 resource "digitalocean_domain" "invincible_domain" {
   name = "invincible.do.jjk3.com"
 }
 
-
-data "digitalocean_loadbalancer" "ams" {
+data "digitalocean_loadbalancer" "ams3" {
   name = "invincible-app-ams3"
 }
 
@@ -45,7 +20,20 @@ resource "digitalocean_record" "ams" {
   domain = digitalocean_domain.invincible_domain.id
   type   = "A"
   name   = "ams3"
-  value  = data.digitalocean_loadbalancer.ams.ip
+  value  = data.digitalocean_loadbalancer.ams3.ip
+  ttl    = 300
+}
+
+data "digitalocean_loadbalancer" "nyc1" {
+  name = "invincible-app-nyc1"
+}
+
+
+resource "digitalocean_record" "nyc" {
+  domain = digitalocean_domain.invincible_domain.id
+  type   = "A"
+  name   = "nyc1"
+  value  = data.digitalocean_loadbalancer.nyc1.ip
   ttl    = 300
 }
 
@@ -83,7 +71,8 @@ resource "digitalocean_loadbalancer" "glb" {
   # need to param project_id
   project_id = "be7ced25-d223-44c6-ace0-6f0ccd7828da"
   target_load_balancer_ids = [
-    data.kubernetes_service_v1.ams3_ingress_nginx_controller.metadata[0].annotations["kubernetes.digitalocean.com/load-balancer-id"]
+    data.digitalocean_loadbalancer.ams3.id,
+    data.digitalocean_loadbalancer.nyc1.id
   ]
   domains {
       name       = "invincible.do.jjk3.com"
@@ -93,4 +82,12 @@ resource "digitalocean_loadbalancer" "glb" {
     target_protocol = "http"
     target_port = 80
   }
+}
+
+resource "digitalocean_project_resources" "invincible_app_ams3" {
+  project = "be7ced25-d223-44c6-ace0-6f0ccd7828da"
+  resources = [
+    data.digitalocean_loadbalancer.ams3.urn,
+    data.digitalocean_loadbalancer.nyc1.urn,
+  ]
 }
