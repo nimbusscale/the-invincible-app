@@ -33,149 +33,94 @@ module "secondary_k8s_cluster" {
   db_replica_name = "invincible-app-nyc1"
 }
 
-# data "digitalocean_kubernetes_cluster" "invincible_app" {
-#   # Param
-#   name = "invincible-app-ams3"
-# }
-#
-# provider "kubernetes" {
-#   host  = data.digitalocean_kubernetes_cluster.invincible_app.endpoint
-#   token = data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].token
-#   cluster_ca_certificate = base64decode(
-#     data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].cluster_ca_certificate
-#   )
-# }
-#
-# provider "helm" {
-#   kubernetes = {
-#     host  = data.digitalocean_kubernetes_cluster.invincible_app.endpoint
-#     token = data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].token
-#     cluster_ca_certificate = base64decode(
-#       data.digitalocean_kubernetes_cluster.invincible_app.kube_config[0].cluster_ca_certificate
-#     )
-#   }
-# }
-#
-# resource "kubernetes_namespace_v1" "ingress_nginx" {
-#   metadata {
-#     name = "ingress-nginx"
-#     labels = {
-#       name = "ingress-nginx"
-#     }
-#   }
-# }
-#
-# data "http" "ingress_nginx_values" {
-#   url = "https://raw.githubusercontent.com/digitalocean/marketplace-kubernetes/master/stacks/ingress-nginx/values.yml"
-# }
-#
-# resource "helm_release" "ingress_nginx" {
-#   name       = "ingress-nginx"
-#   namespace  = kubernetes_namespace_v1.ingress_nginx.metadata[0].name
-#   repository = "https://kubernetes.github.io/ingress-nginx"
-#   chart      = "ingress-nginx"
-#   version    = "4.11.2"
-#   values = [
-#     data.http.ingress_nginx_values.response_body
-#   ]
-#   set = [
-#     {
-#       name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-name"
-#       value = "invincible-app-ams3"
-#     },
-#     {
-#       name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-enable-proxy-protocol"
-#       value = "true"
-#     },
-#     {
-#       name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-tls-passthrough"
-#       value = "true"
-#     },
-#     {
-#       name  = "controller.config.use-proxy-protocol"
-#       value = "true"
-#     }
-#   ]
-# }
-#
-# resource "kubernetes_namespace_v1" "cert_manager" {
-#   metadata {
-#     name = "cert-manager"
-#     labels = {
-#       name = "cert-manager"
-#     }
-#   }
-# }
-#
-# data "http" "cert_manager_values" {
-#   url = "https://raw.githubusercontent.com/digitalocean/marketplace-kubernetes/master/stacks/cert-manager/values.yml"
-# }
-#
-#
-# resource "helm_release" "cert_manager" {
-#   name       = "cert-manager"
-#   namespace  = kubernetes_namespace_v1.cert_manager.metadata[0].name
-#   repository = "https://charts.jetstack.io"
-#   chart      = "cert-manager"
-#   version    = "1.13.3"
-#   values = [
-#     data.http.cert_manager_values.response_body
-#   ]
-# }
-#
-#
-# resource "kubernetes_namespace_v1" "invincible_app" {
-#   metadata {
-#     name = "invincible-app"
-#     labels = {
-#       name = "invincible-app"
-#     }
-#   }
-# }
-#
-# resource "helm_release" "cert_manager_issuer" {
-#   depends_on = [
-#     helm_release.cert_manager
-#   ]
-#   name       = "cert-manager-letsencrypt-issuer"
-#   namespace  = kubernetes_namespace_v1.invincible_app.metadata[0].name
-#   chart      = "./cert-manager-letsencrypt-issuer"
-#   set = [
-#     {
-#       name  = "acmeEmail"
-#       value = "jkeegan@digitalocean.com"
-#     }
-#   ]
-# }
-#
-#
-# data "digitalocean_database_cluster" "invincible_app" {
-#   # Param
-#   name = "invincible-app-ams3"
-# }
-#
-# data "digitalocean_database_ca" "invincible_app" {
-#   cluster_id = data.digitalocean_database_cluster.invincible_app.id
-# }
-#
-#
-# resource "kubernetes_secret_v1" "invincible_app_db" {
-#   metadata {
-#     name = "invincible-app-db"
-#     namespace = kubernetes_namespace_v1.invincible_app.metadata[0].name
-#     labels = {
-#       name = "invincible-app-db"
-#     }
-#   }
-#   data = {
-#     "USER": data.digitalocean_database_cluster.invincible_app.user
-#     "PASSWORD": data.digitalocean_database_cluster.invincible_app.password
-#     "HOST": data.digitalocean_database_cluster.invincible_app.private_host
-#     "PORT": data.digitalocean_database_cluster.invincible_app.port
-#     "DB_NAME": data.digitalocean_database_cluster.invincible_app.database
-#     "CA_CERT": data.digitalocean_database_ca.invincible_app.certificate
-#   }
-# }
+resource "digitalocean_domain" "invincible_domain" {
+  name = "invincible.do.jjk3.com"
+}
+
+data "digitalocean_loadbalancer" "ams3" {
+  depends_on = [
+    module.primary_k8s_cluster,
+    module.secondary_k8s_cluster
+  ]
+  name = "invincible-app-ams3"
+}
+
+resource "digitalocean_record" "ams" {
+  domain = digitalocean_domain.invincible_domain.id
+  type   = "A"
+  name   = "ams3"
+  value  = data.digitalocean_loadbalancer.ams3.ip
+  ttl    = 300
+}
+
+data "digitalocean_loadbalancer" "nyc1" {
+  depends_on = [
+    module.primary_k8s_cluster,
+    module.secondary_k8s_cluster
+  ]
+  name = "invincible-app-nyc1"
+}
 
 
+resource "digitalocean_record" "nyc" {
+  domain = digitalocean_domain.invincible_domain.id
+  type   = "A"
+  name   = "nyc1"
+  value  = data.digitalocean_loadbalancer.nyc1.ip
+  ttl    = 300
+}
 
+data "digitalocean_domain" "parent_domain" {
+  name = "do.jjk3.com"
+}
+
+resource "digitalocean_record" "ns1" {
+  domain = data.digitalocean_domain.parent_domain.id
+  type   = "NS"
+  name   = "invincible"
+  value  = "ns1.digitalocean.com."
+  ttl    = 86400
+}
+
+resource "digitalocean_record" "ns2" {
+  domain = data.digitalocean_domain.parent_domain.id
+  type   = "NS"
+  name   = "invincible"
+  value  = "ns2.digitalocean.com."
+  ttl    = 86400
+}
+
+resource "digitalocean_record" "ns3" {
+  domain = data.digitalocean_domain.parent_domain.id
+  type   = "NS"
+  name   = "invincible"
+  value  = "ns3.digitalocean.com."
+  ttl    = 86400
+}
+
+resource "digitalocean_loadbalancer" "glb" {
+  name = "invincible-app-glb"
+  type = "GLOBAL"
+  # need to param project_id
+  project_id = "be7ced25-d223-44c6-ace0-6f0ccd7828da"
+  target_load_balancer_ids = [
+    data.digitalocean_loadbalancer.ams3.id,
+    data.digitalocean_loadbalancer.nyc1.id
+  ]
+  domains {
+      name       = "invincible.do.jjk3.com"
+      is_managed = true
+  }
+  glb_settings {
+    target_protocol = "http"
+    target_port = 80
+  }
+}
+
+resource "digitalocean_project_resources" "invincible_app_ams3" {
+  project = "be7ced25-d223-44c6-ace0-6f0ccd7828da"
+  resources = [
+    data.digitalocean_loadbalancer.ams3.urn,
+    data.digitalocean_loadbalancer.nyc1.urn,
+  ]
+}
