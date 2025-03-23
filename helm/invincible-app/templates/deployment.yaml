@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "invincible-app.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "invincible-app.fullname" . }}
 spec:
@@ -28,9 +29,9 @@ spec:
           {{- end }}
           env:
           - name: REGION_LOCAL
-            value: "Amsterdam"
+            value: {{ ternary .Values.primaryRegion .Values.secondaryRegion .Values.primary }}
           - name: REGION_REMOTE
-            value: "New York"
+            value: {{ ternary .Values.secondaryRegion .Values.primaryRegion .Values.primary }}
           - name: DB_USER
             valueFrom:
               secretKeyRef:
@@ -45,9 +46,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.dbSecretName }}
-                key: HOST
+                key: {{ ternary "PRIMARY_HOST" "SECONDARY_HOST" .Values.primary }}
           - name: DB_HOST_REMOTE
-            value: "private-invincible-app-nyc1-do-user-19922133-0.i.db.ondigitalocean.com"
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.dbSecretName }}
+                key: {{ ternary "SECONDARY_HOST" "PRIMARY_HOST" .Values.primary }}
           - name: DB_PORT
             valueFrom:
               secretKeyRef:
@@ -66,5 +70,5 @@ spec:
           - name: PORT
             value: "8080"
           - name: SVC_IP_REMOTE
-            value: "ams3.invincible.do.jjk3.com"
+            value: {{ printf "%s.%s" (ternary .Values.secondaryRegion .Values.primaryRegion .Values.primary) .Values.domain }}
 

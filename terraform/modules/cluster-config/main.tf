@@ -168,6 +168,3 @@ resource "kubernetes_secret_v1" "invincible_app_db" {
     "CA_CERT": data.digitalocean_database_ca.invincible_app.certificate
   }
 }
-
-
-
