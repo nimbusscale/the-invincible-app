@@ -1,8 +1,8 @@
 module "infra" {
   source = "../../modules/infra"
-  app_name = "invincible-app"
-  primary_region = "ams3"
-  secondary_region = "nyc1"
-  db_size = "db-s-1vcpu-2gb"
-  k8s_worker_size = "s-1vcpu-2gb"
+  app_name = var.app_name
+  primary_region = var.primary_region
+  secondary_region = var.secondary_region
+  db_size = var.db_size
+  k8s_worker_size = var.k8s_worker_size
 }

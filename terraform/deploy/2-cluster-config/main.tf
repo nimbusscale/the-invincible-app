@@ -1,15 +1,15 @@
 module "primary_k8s_cluster" {
   source = "../../modules/cluster-config"
-  app_name = "invincible-app"
-  region = "ams3"
-  db_cluster_name = "invincible-app-ams3"
-  db_replica_name = "invincible-app-nyc1"
+  app_name = var.app_name
+  region = var.primary_region
+  db_cluster_name = "${var.app_name}-${var.primary_region}"
+  db_replica_name = "${var.app_name}-${var.secondary_region}"
 }
 
 module "secondary_k8s_cluster" {
   source = "../../modules/cluster-config"
-  app_name = "invincible-app"
-  region = "nyc1"
-  db_cluster_name = "invincible-app-ams3"
-  db_replica_name = "invincible-app-nyc1"
+  app_name = var.app_name
+  region = var.secondary_region
+  db_cluster_name = "${var.app_name}-${var.primary_region}"
+  db_replica_name = "${var.app_name}-${var.secondary_region}"
 }
