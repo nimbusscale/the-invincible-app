@@ -1,5 +1,5 @@
 module "network" {
-  source = "../../modules/network"
+  source = "../../resource/network"
   app_name = var.app_name
   parent_domain = var.parent_domain
   primary_region = var.primary_region
@@ -7,7 +7,7 @@ module "network" {
 }
 
 module "primary_app" {
-  source = "../../modules/app"
+  source = "../../resource/app"
   app_name = var.app_name
   region = var.primary_region
   primary = "true"
@@ -16,7 +16,7 @@ module "primary_app" {
 }
 
 module "secondary_app" {
-  source = "../../modules/app"
+  source = "../../resource/app"
   app_name = var.app_name
   region = var.secondary_region
   primary = "false"

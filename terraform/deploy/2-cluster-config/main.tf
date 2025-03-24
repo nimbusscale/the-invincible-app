@@ -1,5 +1,5 @@
 module "primary_k8s_cluster" {
-  source = "../../modules/cluster-config"
+  source = "../../resource/cluster-config"
   app_name = var.app_name
   region = var.primary_region
   db_cluster_name = "${var.app_name}-${var.primary_region}"
@@ -7,7 +7,7 @@ module "primary_k8s_cluster" {
 }
 
 module "secondary_k8s_cluster" {
-  source = "../../modules/cluster-config"
+  source = "../../resource/cluster-config"
   app_name = var.app_name
   region = var.secondary_region
   db_cluster_name = "${var.app_name}-${var.primary_region}"

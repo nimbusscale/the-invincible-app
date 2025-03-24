@@ -1,5 +1,5 @@
 module "infra" {
-  source = "../../modules/infra"
+  source = "../../resource/infra"
   app_name = var.app_name
   primary_region = var.primary_region
   secondary_region = var.secondary_region
