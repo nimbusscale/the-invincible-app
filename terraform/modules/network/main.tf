@@ -70,12 +70,21 @@ resource "digitalocean_loadbalancer" "glb" {
   glb_settings {
     target_protocol = "http"
     target_port = 80
+    cdn {
+      is_enabled = false
+    }
+  }
+  healthcheck {
+    port     = 80
+    protocol = "http"
+    path = "/health"
   }
 }
 
 resource "digitalocean_project_resources" "lbs" {
   project = data.digitalocean_project.app.id
   resources = [
+    digitalocean_domain.app_domain.urn,
     data.digitalocean_loadbalancer.primary.urn,
     data.digitalocean_loadbalancer.secondary.urn,
   ]
